@@ -5,11 +5,9 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 from typing import Optional, List
-
 from .model import Generator, SVDDEncoder
 from .model import SSIMLoss, SVDDLoss, SCELoss
-from .utils import seed_everything
-
+from utils import seed_everything
 
 class SNNet:
     def __init__(self, epochs: List[int] = [10, 5], batch_size: int = 128,
