@@ -1,7 +1,4 @@
 import argparse
-from finetune import SNNet
-from pretrain import pretrain
-from utils import evaluate
 import pandas as pd
 import scanpy as sc
 import torch
@@ -9,6 +6,9 @@ import numpy as np
 import random
 import dgl
 from dgl.data.utils import load_graphs
+from finetune import SNNet
+from pretrain import pretrain
+from utils import evaluate
 
 def data_factory(data_path, data_name, is_training=True):
     if is_training:
