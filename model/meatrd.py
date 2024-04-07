@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from dgl.nn import GATv2Conv
 
-from .fusion import GraphMBT, ConcatFusion
+from .fusion import GraphMBT, ConcatFusion, MGDAT
 from .unet import UNet
 
 
@@ -223,7 +223,7 @@ class Generator(nn.Module):
         self.UNet = UNet(3, Mobile=Mobile, **kwargs)
 
         emb_chan = self.UNet.emb_chan
-        self.Fusion = GraphMBT(out_dim[-1], emb_chan, patch_size // (2**4))
+        self.Fusion = MGDAT(out_dim[-1], emb_chan, patch_size // (2**4))
 
         self.z_g_dim = out_dim[-1]
         self.z_p_dim = emb_chan * patch_size**2
@@ -239,7 +239,7 @@ class Generator(nn.Module):
         z_g = self.GeneEncoder(feat_g)
         z_p, p_skips = self.UNet.encode(blocks[-1], feat_p)
 
-        # Fusion with GraphMBT
+        # Fusion with MGDAT
         z_g, z_p = self.Fusion(blocks[:-1], z_g, z_p)
 
         fake_g = self.GeneDecoder(blocks[-1], z_g)

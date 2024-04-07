@@ -11,7 +11,7 @@ from .utils import seed_everything
 
 
 def pretrain(graph: dgl.DGLGraph,
-             unet_epochs: int = 30,
+             unet_epochs: int = 20,
              batch_size: int = 128,
              learning_rate: float = 1e-4,
              GPU: bool = True,
