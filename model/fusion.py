@@ -83,11 +83,13 @@ class TransformerLayer(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, encoder_layer, num_layers, out_dim, norm=None):
+    def __init__(self, dim, nheads, num_layers, out_dim, norm=None):
         super().__init__()
-        self.layers = nn.ModuleList([encoder_layer for _ in range(num_layers)])
+        self.layers = nn.ModuleList([
+            TransformerLayer(dim, nheads) for _ in range(num_layers)
+        ])
         self.norm = norm
-        self.fc = nn.Linear(encoder_layer.d_model, out_dim)
+        self.fc = nn.Linear(dim, out_dim)
 
     def forward(self, x, mask=None):
         x = x.unsqueeze(1)
@@ -114,8 +116,7 @@ class GraphMBT(nn.Module):
         self.p_up = nn.Linear(g_dim, p_dim)
     
         # Transformer Fusion
-        encoder_layer = TransformerLayer(g_dim*2, TF_nheads)
-        self.bottleneck = TransformerEncoder(encoder_layer, TF_layers, fused_dim)
+        self.bottleneck = TransformerEncoder(g_dim*2, TF_nheads, TF_layers, fused_dim)
 
         # GAT Fusion
         self.layer = GAT(g_dim+fused_dim, g_dim, nheads=GAT_nheads, single_layers=False)
@@ -168,16 +169,15 @@ class ConcatFusion(nn.Module):
 
 
 class MGDATLayer(nn.Module):
-    def __init__(self, z_dim, fused_dim=16, TF_layers=2, TF_nheads=4, GAT_nheads=2):
+    def __init__(self, z_dim, fused_dim, TF_layers, TF_nheads, GAT_nheads):
         super().__init__()       
 
         # Transformer Fusion
-        encoder_layer = TransformerLayer(z_dim*2, TF_nheads)
-        self.bottleneck = TransformerEncoder(encoder_layer, TF_layers, fused_dim)
+        self.bottleneck = TransformerEncoder(z_dim*2, TF_nheads, TF_layers, fused_dim)
 
         # GAT Fusion
         self.GAT = GAT(z_dim+fused_dim, z_dim, nheads=GAT_nheads)
-    
+
     def forward(self, graph, gene_tokens, patch_tokens, mask=None):
         concat = torch.cat((gene_tokens, patch_tokens), dim=1)
         fused = self.bottleneck(concat, mask)
@@ -187,10 +187,10 @@ class MGDATLayer(nn.Module):
 
 
 class MGDAT(nn.Module):
-    def __init__(self, g_dim, emb_chan, patch_size, fused_dim=16, blocks=3, 
+    def __init__(self, g_dim, emb_chan, patch_size, fused_dim=16, blocks=2, 
                  TF_layers=2, TF_nheads=4, GAT_nheads=2, mask=True):
         super().__init__()
-        
+
         # Patch Projection (emb_chan * patch_size**2 -->> g_dim)
         self.emb_chan = emb_chan
         self.patch_size = patch_size

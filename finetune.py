@@ -12,7 +12,7 @@ from thop import profile
 
 class SNNet:
     def __init__(self, epochs: List[int] = [10, 5], batch_size: int = 64,
-                 learning_rate: float = 1e-4, GPU: Optional[str] = "cuda:0",
+                 learning_rate: float = 1e-4, GPU: Optional[str] = "cuda:1",
                  random_state: Optional[int] = None, Mobile: bool = False):
         if GPU is not None:
             if torch.cuda.is_available():
@@ -37,7 +37,7 @@ class SNNet:
         tqdm.write('Begin to train the model on normal spots...')
 
         # dataset provides subgraph for training
-        self.sampler = dgl.dataloading.MultiLayerFullNeighborSampler(4)
+        self.sampler = dgl.dataloading.MultiLayerFullNeighborSampler(3)
         self.dataloader = dgl.dataloading.DataLoader(
             ref_g, ref_g.nodes(), self.sampler,
             batch_size=self.batch_size, shuffle=True,
