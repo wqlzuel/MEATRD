@@ -241,6 +241,3 @@ class MGDAT(nn.Module):
 
         p = self.p_up(p)
         return g, p.reshape(-1, self.emb_chan, self.patch_size, self.patch_size)
-    
-
-

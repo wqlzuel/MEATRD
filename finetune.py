@@ -11,8 +11,8 @@ from .utils import seed_everything
 from thop import profile
 
 class SNNet:
-    def __init__(self, epochs: List[int] = [10, 5], batch_size: int = 64,
-                 learning_rate: float = 1e-4, GPU: Optional[str] = "cuda:1",
+    def __init__(self, epochs: List[int] = [10, 5], batch_size: int = 128,
+                 learning_rate: float = 1e-4, GPU: Optional[str] = "cuda:0",
                  random_state: Optional[int] = None, Mobile: bool = False):
         if GPU is not None:
             if torch.cuda.is_available():
