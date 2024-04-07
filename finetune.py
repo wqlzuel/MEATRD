@@ -8,6 +8,7 @@ from typing import Optional, List
 from .model import Generator, SVDDEncoder
 from .model import SSIMLoss, SVDDLoss, SCELoss
 from .utils import seed_everything
+from thop import profile
 
 class SNNet:
     def __init__(self, epochs: List[int] = [10, 5], batch_size: int = 64,
@@ -36,7 +37,7 @@ class SNNet:
         tqdm.write('Begin to train the model on normal spots...')
 
         # dataset provides subgraph for training
-        self.sampler = dgl.dataloading.MultiLayerFullNeighborSampler(3)
+        self.sampler = dgl.dataloading.MultiLayerFullNeighborSampler(4)
         self.dataloader = dgl.dataloading.DataLoader(
             ref_g, ref_g.nodes(), self.sampler,
             batch_size=self.batch_size, shuffle=True,
@@ -149,6 +150,8 @@ class SNNet:
         '''Updating generator'''
         input_g, input_p = self.read_input(blocks)
         real_g, real_p, fake_g, fake_p = self.G(blocks, input_g, input_p)
+        # flops, params = profile(self.G, inputs=(blocks, input_g, input_p, ))
+        # print(params)
 
         dg = self.in_dim
         dp = 3 * self.patch_size**2

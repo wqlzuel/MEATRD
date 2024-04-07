@@ -167,8 +167,27 @@ class ConcatFusion(nn.Module):
         return output
 
 
+class MGDATLayer(nn.Module):
+    def __init__(self, z_dim, fused_dim=16, TF_layers=2, TF_nheads=4, GAT_nheads=2):
+        super().__init__()       
+
+        # Transformer Fusion
+        encoder_layer = TransformerLayer(z_dim*2, TF_nheads)
+        self.bottleneck = TransformerEncoder(encoder_layer, TF_layers, fused_dim)
+
+        # GAT Fusion
+        self.GAT = GAT(z_dim+fused_dim, z_dim, nheads=GAT_nheads)
+    
+    def forward(self, graph, gene_tokens, patch_tokens, mask=None):
+        concat = torch.cat((gene_tokens, patch_tokens), dim=1)
+        fused = self.bottleneck(concat, mask)
+        gene_tokens = self.GAT(graph, torch.cat((gene_tokens, fused), dim=-1))
+        patch_tokens = self.GAT(graph, torch.cat((patch_tokens, fused), dim=-1))
+        return gene_tokens, patch_tokens
+
+
 class MGDAT(nn.Module):
-    def __init__(self, g_dim, emb_chan, patch_size, fused_dim=16, blocks=2, 
+    def __init__(self, g_dim, emb_chan, patch_size, fused_dim=16, blocks=3, 
                  TF_layers=2, TF_nheads=4, GAT_nheads=2, mask=True):
         super().__init__()
         
@@ -179,20 +198,16 @@ class MGDAT(nn.Module):
         self.p_down = nn.Linear(p_dim, g_dim)
         self.p_up = nn.Linear(g_dim, p_dim)
     
-        # Transformer Fusion
-        encoder_layer = TransformerLayer(g_dim*2, TF_nheads)
-        self.bottleneck = TransformerEncoder(encoder_layer, TF_layers, fused_dim)
-
-        # GAT Fusion
-        self.GAT = GAT(g_dim+fused_dim, g_dim, nheads=GAT_nheads)
+        self.blocks = blocks
+        self.fusion = nn.ModuleList([
+            MGDATLayer(g_dim, fused_dim, TF_layers, TF_nheads, GAT_nheads) for _ in range(blocks)
+        ])
 
         # mask
         self.mask = mask
         if self.mask:
             self.g_mask_token = nn.Parameter(torch.zeros(1, g_dim))
             self.p_mask_token = nn.Parameter(torch.zeros(1, g_dim))
-
-        self.blocks = blocks
 
     def make_mask(self, blocks, gene_tokens, patch_tokens):
         # replace input data with mask tokens
@@ -204,23 +219,13 @@ class MGDAT(nn.Module):
         return gene_tokens, patch_tokens
     
     def attn_mask(self, blocks, idx):
-        mask = torch.zeros(blocks[idx].num_src_nodes(), blocks[idx].num_src_nodes())
-        mask[:blocks[-1].num_dst_nodes(), :blocks[-1].num_dst_nodes()] = 1
-        return mask.to(self.g_mask_token)
-
-    def fusion(self, blocks, gene_tokens, patch_tokens):
-        for i in range(self.blocks):
-            concat = torch.cat((gene_tokens, patch_tokens), dim=1)
-            
-            if self.mask:
-                mask = self.attn_mask(blocks, i).bool()
-            else:
-                mask = None
-            
-            fused = self.bottleneck(concat, mask)
-            gene_tokens = self.GAT(blocks[i], torch.cat((gene_tokens, fused), dim=-1))
-            patch_tokens = self.GAT(blocks[i], torch.cat((patch_tokens, fused), dim=-1))
-        return gene_tokens, patch_tokens
+        if self.mask:
+            mask = torch.zeros(blocks[idx].num_src_nodes(), blocks[idx].num_src_nodes())
+            mask[:blocks[-1].num_dst_nodes(), :blocks[-1].num_dst_nodes()] = 1
+            mask = mask.to(self.g_mask_token)
+        else:
+            mask = None
+        return None
     
     def forward(self, blocks, g, p):
         p = self.p_down(p.flatten(1))
@@ -228,7 +233,11 @@ class MGDAT(nn.Module):
         if self.mask:
             g, p = self.make_mask(blocks, g, p)
 
-        g, p = self.fusion(blocks, g, p)
+        # MGDAT Fusion
+        for idx in range(self.blocks):
+            layer = self.fusion[idx]
+            mask = self.attn_mask(blocks, idx)
+            g, p = layer(blocks[idx], g, p, mask)
 
         p = self.p_up(p)
         return g, p.reshape(-1, self.emb_chan, self.patch_size, self.patch_size)
