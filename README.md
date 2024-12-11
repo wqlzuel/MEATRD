@@ -2,7 +2,7 @@
 
 <br/>
 <div align=center>
-<img src='/docs/MEATRD.png' width='80%'>
+<img src='MEATRD.png' width='80%'>
 </div>
 <br/>
 
