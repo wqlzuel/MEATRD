@@ -11,7 +11,7 @@ The detection of anomalous tissue regions (ATRs) within affected tissues is cruc
 ```
 git clone https://github.com/wqlzuel/MEATRD
 cd MEATRD
-pip install -e .
+pip install -r requirements.txt
 ```
 
 ## Dataset
