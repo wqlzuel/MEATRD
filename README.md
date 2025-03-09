@@ -6,6 +6,13 @@ The detection of anomalous tissue regions (ATRs) within affected tissues is cruc
 <img src='MEATRD.png' width='80%'>
 </div>
 
+## Setup
+
+```
+git clone github.com/wqlzuel/MEATRD
+cd MEATRD
+pip install -e .
+```
 
 ## Dataset
 - The raw AnnData files of 10x-hNB can be downloaded from [here](https://cellxgene.cziscience.com/collections/4195ab4c-20bd-4cd3-8b3d-65601277e731)
