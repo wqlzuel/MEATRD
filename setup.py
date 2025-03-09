@@ -17,14 +17,14 @@ setuptools.setup(
     ],
     python_requires='>=3.8',
     install_requires = [
-        'numpy'
-        'pandas',
-        'scipy',
-        'scikit-learn',
-        'torchvision',
-        'tqdm',
-        'Pillow',
-        'scanpy',
-        'dgl'
+        'numpy==1.26.4'
+        'pandas==1.5.3',
+        'scipy==1.10.1',
+        'scikit-learn==1.2.2',
+        'torchvision==0.19.0',
+        'tqdm==4.67.0',
+        'Pillow==10.1.0',
+        'scanpy==1.10.3',
+        'dgl==2.4.0'
     ]
 )
