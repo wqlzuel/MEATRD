@@ -14,6 +14,12 @@ cd MEATRD
 pip install -r requirements.txt
 ```
 
+## Usage
+Please download the processed dataset and store it in the ```/data/``` directory, then run:
+```
+python main.py --data_path ./data/
+```
+
 ## Dataset
 - The raw AnnData files of 10x-hNB can be downloaded from [here](https://cellxgene.cziscience.com/collections/4195ab4c-20bd-4cd3-8b3d-65601277e731)
 - The raw AnnData files of 10x-hBC-{A1-H1} can be downloaded from [here](https://github.com/almaan/her2st)
