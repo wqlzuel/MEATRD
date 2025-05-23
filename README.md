@@ -7,13 +7,14 @@ The detection of anomalous tissue regions (ATRs) within affected tissues is cruc
 </div>
 
 ```
-@Article{MEATRD_2025,
+@inproceedings{MEATRD_2025,
     author={Xu, Kaichen and Wu, Qilong and Lu, Yan and Zheng, Yinan and Li, Wenlin and Tang, Xingjie and Wang, Jun and Sun, Xiaobo},
-    journal={Proceedings of the AAAI Conference on Artificial Intelligence},
     title={MEATRD: Multimodal Anomalous Tissue Region Detection Enhanced with Spatial Transcriptomics},
+    booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
     year={2025},
     volume={39},
     number={12},
+    pages={12918-12926}
 }
 ```
 
